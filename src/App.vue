@@ -1,6 +1,7 @@
 <script setup>
 import { ref, provide, watch, nextTick } from 'vue'
 import JsonNode from './components/JsonNode.vue'
+import GraphView from './components/GraphView.vue'
 
 const rawInput = ref('')
 const parsed = ref(null)
@@ -21,6 +22,8 @@ function tryParse() {
     }
   }, 120)
 }
+
+const viewMode = ref('tree')
 
 const expandTick = ref(0)
 const collapseTick = ref(0)
@@ -106,49 +109,47 @@ async function copyJson() {
       <section ref="viewerEl" class="flex flex-col flex-1 overflow-hidden">
 
         <div class="flex flex-col gap-2 px-4 pt-4 pb-2 border-b border-[#1e2130] shrink-0">
-          <div v-if="parsed" class="flex items-center gap-2">
-            <input
-              v-model="searchInput"
-              placeholder="Search keys and values..."
-              @keydown.enter="nextMatch"
-              class="flex-1 bg-[#141720] text-slate-300 border border-[#1e2130]
-                    rounded px-3 py-1 text-xs outline-none font-mono
-                    focus:border-[#3b4a6b] transition-colors placeholder:text-slate-600"
-            />
-            <template v-if="searchInput && matchCount > 0">
-              <span class="text-xs text-slate-500 shrink-0">{{ matchIndex + 1 }} / {{ matchCount }}</span>
-              <button @click="prevMatch" class="px-2 py-1 text-xs rounded border border-[#2e3a50] bg-[#1e2130] text-slate-400 hover:text-slate-200 hover:border-[#3b4a6b] transition-colors">↑</button>
-              <button @click="nextMatch" class="px-2 py-1 text-xs rounded border border-[#2e3a50] bg-[#1e2130] text-slate-400 hover:text-slate-200 hover:border-[#3b4a6b] transition-colors">↓</button>
-            </template>
-            <span v-else-if="searchInput && matchCount === 0" class="text-xs text-slate-600 shrink-0">no results</span>
-          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex gap-1">
+              <button
+                v-for="mode in ['tree', 'graph']"
+                :key="mode"
+                @click="viewMode = mode"
+                :class="[
+                  'px-3 py-1 text-xs rounded border transition-colors capitalize',
+                  viewMode === mode
+                    ? 'text-slate-200 border-[#3b4a6b] bg-[#1e2130]'
+                    : 'text-slate-500 border-transparent hover:text-slate-300'
+                ]"
+              >{{ mode }}</button>
+            </div>
 
-          <div v-if="parsed" class="flex justify-end gap-2">
-            <button
-              @click="expandTick++"
-              class="px-3 py-1 text-xs rounded border transition-colors
-                    text-slate-400 border-[#2e3a50] bg-[#1e2130]
-                    hover:text-slate-200 hover:border-[#3b4a6b]"
-            >Expand all</button>
-            <button
-              @click="collapseTick++"
-              class="px-3 py-1 text-xs rounded border transition-colors
-                    text-slate-400 border-[#2e3a50] bg-[#1e2130]
-                    hover:text-slate-200 hover:border-[#3b4a6b]"
-            >Collapse all</button>
-            <button
-              @click="copyJson"
-              :class="[
-                'px-3 py-1 text-xs rounded border transition-colors',
-                copied
-                  ? 'text-green-300 border-green-300/25'
-                  : 'text-slate-400 border-[#2e3a50] bg-[#1e2130] hover:text-slate-200 hover:border-[#3b4a6b]'
-              ]"
-            >{{ copied ? 'Copied' : 'Copy' }}</button>
+            <div v-if="parsed && viewMode === 'tree'" class="flex items-center gap-2">
+              <input
+                v-model="searchInput"
+                placeholder="Search…"
+                @keydown.enter="nextMatch"
+                class="w-44 bg-[#141720] text-slate-300 border border-[#1e2130]
+                      rounded px-3 py-1 text-xs outline-none font-mono
+                      focus:border-[#3b4a6b] transition-colors placeholder:text-slate-600"
+              />
+              <template v-if="searchInput && matchCount > 0">
+                <span class="text-xs text-slate-500 shrink-0">{{ matchIndex + 1 }} / {{ matchCount }}</span>
+                <button @click="prevMatch" class="px-2 py-1 text-xs rounded border border-[#2e3a50] bg-[#1e2130] text-slate-400 hover:text-slate-200 hover:border-[#3b4a6b] transition-colors">↑</button>
+                <button @click="nextMatch" class="px-2 py-1 text-xs rounded border border-[#2e3a50] bg-[#1e2130] text-slate-400 hover:text-slate-200 hover:border-[#3b4a6b] transition-colors">↓</button>
+              </template>
+              <span v-else-if="searchInput && matchCount === 0" class="text-xs text-slate-600 shrink-0">no results</span>
+              <button @click="expandTick++" class="px-3 py-1 text-xs rounded border transition-colors text-slate-400 border-[#2e3a50] bg-[#1e2130] hover:text-slate-200 hover:border-[#3b4a6b]">Expand all</button>
+              <button @click="collapseTick++" class="px-3 py-1 text-xs rounded border transition-colors text-slate-400 border-[#2e3a50] bg-[#1e2130] hover:text-slate-200 hover:border-[#3b4a6b]">Collapse all</button>
+              <button
+                @click="copyJson"
+                :class="['px-3 py-1 text-xs rounded border transition-colors', copied ? 'text-green-300 border-green-300/25' : 'text-slate-400 border-[#2e3a50] bg-[#1e2130] hover:text-slate-200 hover:border-[#3b4a6b]']"
+              >{{ copied ? 'Copied' : 'Copy' }}</button>
+            </div>
           </div>
         </div>
 
-        <div class="flex-1 overflow-auto p-4">
+        <div v-if="viewMode === 'tree'" class="flex-1 overflow-auto p-4">
           <p v-if="!rawInput" class="text-sm text-slate-600">
             Your formatted JSON will appear here.
           </p>
@@ -158,6 +159,11 @@ async function copyJson() {
           <div v-else class="py-1">
             <JsonNode :data="parsed" />
           </div>
+        </div>
+
+        <div v-else class="flex-1 overflow-hidden">
+          <p v-if="!parsed" class="text-sm text-slate-600 p-4">Paste valid JSON to see the graph.</p>
+          <GraphView v-else :data="parsed" />
         </div>
       </section>
 
