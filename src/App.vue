@@ -1,5 +1,5 @@
 <script setup>
-import { ref, provide } from 'vue'
+import { ref, provide, watch, nextTick } from 'vue'
 import JsonNode from './components/JsonNode.vue'
 
 const rawInput = ref('')
@@ -21,8 +21,16 @@ function tryParse() {
 
 const expandTick = ref(0)
 const collapseTick = ref(0)
+const searchTerm = ref('')
+const viewerEl = ref(null)
 provide('expandTick', expandTick)
 provide('collapseTick', collapseTick)
+provide('searchTerm', searchTerm)
+
+watch(searchTerm, async () => {
+  await nextTick()
+  viewerEl.value?.querySelector('mark')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+})
 
 async function copyJson() {
   if (!parsed.value) return
@@ -55,7 +63,17 @@ async function copyJson() {
         <p v-if="error" class="mt-2 text-xs text-red-400 font-mono">{{ error }}</p>
       </section>
 
-      <section class="flex flex-col flex-1 p-4 overflow-auto">
+      <section ref="viewerEl" class="flex flex-col flex-1 p-4 overflow-auto">
+        <div v-if="parsed" class="flex items-center gap-2 mb-2.5 shrink-0">
+          <input
+            v-model="searchTerm"
+            placeholder="Search keys and values..."
+            class="flex-1 bg-[#141720] text-slate-300 border border-[#1e2130]
+                  rounded px-3 py-1 text-xs outline-none font-mono
+                  focus:border-[#3b4a6b] transition-colors placeholder:text-slate-600"
+          />
+        </div>
+
         <div v-if="parsed" class="flex justify-end gap-2 mb-2.5 shrink-0">
           <button
             @click="expandTick++"
