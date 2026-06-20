@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, provide } from 'vue'
 import JsonNode from './components/JsonNode.vue'
 
 const rawInput = ref('')
@@ -18,6 +18,11 @@ function tryParse() {
     error.value = e.message
   }
 }
+
+const expandTick = ref(0)
+const collapseTick = ref(0)
+provide('expandTick', expandTick)
+provide('collapseTick', collapseTick)
 
 async function copyJson() {
   if (!parsed.value) return
@@ -51,7 +56,19 @@ async function copyJson() {
       </section>
 
       <section class="flex flex-col flex-1 p-4 overflow-auto">
-        <div v-if="parsed" class="flex justify-end mb-2.5 shrink-0">
+        <div v-if="parsed" class="flex justify-end gap-2 mb-2.5 shrink-0">
+          <button
+            @click="expandTick++"
+            class="px-3 py-1 text-xs rounded border transition-colors
+                  text-slate-400 border-[#2e3a50] bg-[#1e2130]
+                  hover:text-slate-200 hover:border-[#3b4a6b]"
+          >Expand all</button>
+          <button
+            @click="collapseTick++"
+            class="px-3 py-1 text-xs rounded border transition-colors
+                  text-slate-400 border-[#2e3a50] bg-[#1e2130]
+                  hover:text-slate-200 hover:border-[#3b4a6b]"
+          >Collapse all</button>
           <button
             @click="copyJson"
             :class="[
@@ -60,9 +77,7 @@ async function copyJson() {
                 ? 'text-green-300 border-green-300/25'
                 : 'text-slate-400 border-[#2e3a50] bg-[#1e2130] hover:text-slate-200 hover:border-[#3b4a6b]'
             ]"
-          >
-            {{ copied ? 'Copied' : 'Copy' }}
-          </button>
+          >{{ copied ? 'Copied' : 'Copy' }}</button>
         </div>
 
         <p v-if="!rawInput" class="m-auto text-sm text-slate-600">

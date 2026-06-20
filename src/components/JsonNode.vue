@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, inject, watch } from 'vue'
 
 const props = defineProps({
   data: { required: true },
@@ -16,6 +16,12 @@ const type = computed(() => {
 })
 
 const isExpandable = computed(() => type.value === 'object' || type.value === 'array')
+
+const expandTick = inject('expandTick', ref(0))
+const collapseTick = inject('collapseTick', ref(0))
+
+watch(expandTick, () => { if (isExpandable.value) open.value = true })
+watch(collapseTick, () => { if (isExpandable.value) open.value = false })
 
 const entries = computed(() => {
   if (type.value === 'array') return props.data.map((v, i) => [i, v])
