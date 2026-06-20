@@ -10,6 +10,7 @@ A clean JSON viewer built with Vue 3 and Tailwind. Paste your JSON on the left, 
 - Handles large JSONs without freezing — search is debounced and big arrays are paginated (100 items at a time)
 - Expand all / Collapse all buttons
 - Copy the formatted JSON to clipboard
+- Tree graph visualization of the JSON structure
 
 ## Running it locally
 
