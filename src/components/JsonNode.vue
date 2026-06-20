@@ -7,7 +7,11 @@ const props = defineProps({
   depth: { type: Number, default: 0 }
 })
 
-const open = ref(props.depth < 2)
+const expandTick = inject('expandTick', ref(0))
+const collapseTick = inject('collapseTick', ref(0))
+const searchTerm = inject('searchTerm', ref(''))
+
+const open = ref(expandTick.value > collapseTick.value || props.depth < 2)
 
 const type = computed(() => {
   if (props.data === null) return 'null'
@@ -28,10 +32,6 @@ const preview = computed(() => {
   if (type.value === 'object') return `{ ${Object.keys(props.data).length} keys }`
   return ''
 })
-
-const expandTick = inject('expandTick', ref(0))
-const collapseTick = inject('collapseTick', ref(0))
-const searchTerm = inject('searchTerm', ref(''))
 
 watch(expandTick, () => { if (isExpandable.value) open.value = true })
 watch(collapseTick, () => { if (isExpandable.value) open.value = false })
