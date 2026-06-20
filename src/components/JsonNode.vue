@@ -37,81 +37,43 @@ function formatValue(val, t) {
 </script>
 
 <template>
-  <span class="node">
-    <span v-if="nodeKey !== null" class="key">
-      {{ typeof nodeKey === 'number' ? nodeKey : `"${nodeKey}"` }}:&nbsp;
+  <span class="font-mono text-[13px] leading-[1.7]">
+
+    <span v-if="nodeKey !== null" class="text-sky-300 mr-1">
+      {{ typeof nodeKey === 'number' ? nodeKey : `"${nodeKey}"` }}:
     </span>
 
     <template v-if="isExpandable">
-      <button class="toggle" @click="open = !open">{{ open ? '▾' : '▸' }}</button>
-      <span v-if="!open" class="preview" @click="open = true">{{ preview }}</span>
-      <span v-else class="bracket">{{ type === 'array' ? '[' : '{' }}</span>
+      <button
+        @click="open = !open"
+        class="text-[11px] text-slate-500 hover:text-slate-300 px-0.5 cursor-pointer bg-transparent border-none"
+      >{{ open ? '▾' : '▸' }}</button>
 
-      <div v-if="open" class="children">
-        <div v-for="([k, v], i) in entries" :key="k" class="child-line">
+      <span
+        v-if="!open"
+        @click="open = true"
+        class="text-[12px] text-slate-600 hover:text-slate-400 ml-1 cursor-pointer"
+      >{{ preview }}</span>
+
+      <span v-else class="text-slate-500">{{ type === 'array' ? '[' : '{' }}</span>
+
+      <div v-if="open" class="pl-5 border-l border-[#1e2130] ml-1.5">
+        <div v-for="([k, v], i) in entries" :key="k" class="flex items-baseline">
           <JsonNode :data="v" :node-key="k" :depth="depth + 1" />
-          <span v-if="i < entries.length - 1" class="comma">,</span>
+          <span v-if="i < entries.length - 1" class="text-slate-600">,</span>
         </div>
       </div>
 
-      <span v-if="open" class="bracket">{{ type === 'array' ? ']' : '}' }}</span>
+      <span v-if="open" class="text-slate-500">{{ type === 'array' ? ']' : '}' }}</span>
     </template>
 
     <template v-else>
-      <span :class="['value', type]">{{ formatValue(data, type) }}</span>
+      <span :class="{
+        'text-green-300':  type === 'string',
+        'text-amber-400':  type === 'number',
+        'text-purple-400': type === 'boolean',
+        'text-red-400':    type === 'null',
+      }">{{ formatValue(data, type) }}</span>
     </template>
   </span>
 </template>
-
-<style scoped>
-.node {
-  display: inline;
-  font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.key {
-  color: #7dd3fc;
-}
-
-.toggle {
-  background: none;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  font-size: 11px;
-  padding: 0 2px;
-}
-
-.toggle:hover { color: #94a3b8; }
-
-.preview {
-  color: #475569;
-  cursor: pointer;
-  font-size: 12px;
-  margin-left: 4px;
-}
-
-.preview:hover { color: #94a3b8; }
-
-.bracket { color: #64748b; }
-
-.children {
-  padding-left: 20px;
-  border-left: 1px solid #1e2130;
-  margin-left: 6px;
-}
-
-.child-line {
-  display: flex;
-  align-items: baseline;
-}
-
-.comma { color: #475569; }
-
-.value.string  { color: #86efac; }
-.value.number  { color: #fbbf24; }
-.value.boolean { color: #c084fc; }
-.value.null    { color: #f87171; }
-</style>

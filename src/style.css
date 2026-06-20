@@ -1,18 +1,5 @@
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+@import "tailwindcss";
 
-body {
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  background: #0f1117;
-  color: #e2e8f0;
-  min-height: 100vh;
-}
-
-#app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+@theme {
+  --font-mono: 'Cascadia Code', 'Fira Code', Consolas, monospace;
 }

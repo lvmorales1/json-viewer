@@ -5,6 +5,7 @@ import JsonNode from './components/JsonNode.vue'
 const rawInput = ref('')
 const parsed = ref(null)
 const error = ref('')
+const copied = ref(false)
 
 function tryParse() {
   error.value = ''
@@ -17,116 +18,64 @@ function tryParse() {
     error.value = e.message
   }
 }
+
+async function copyJson() {
+  if (!parsed.value) return
+  await navigator.clipboard.writeText(JSON.stringify(parsed.value, null, 2))
+  copied.value = true
+  setTimeout(() => { copied.value = false }, 1800)
+}
 </script>
 
 <template>
-  <div class="layout">
-    <header class="top-bar">
-      <h1>JSON Viewer</h1>
+  <div class="flex flex-col h-screen bg-[#0f1117] text-slate-300">
+
+    <header class="px-6 py-3.5 border-b border-[#1e2130] shrink-0">
+      <h1 class="text-lg font-semibold text-slate-400 tracking-wide">JSON Viewer</h1>
     </header>
 
-    <main class="content">
-      <section class="input-side">
+    <main class="flex flex-1 overflow-hidden">
+
+      <section class="flex flex-col flex-1 p-4 border-r border-[#1e2130] overflow-auto">
         <textarea
           v-model="rawInput"
           placeholder="Paste your JSON here..."
           @input="tryParse"
           spellcheck="false"
+          class="flex-1 resize-none outline-none rounded-md p-3.5
+                bg-[#141720] text-slate-300 border border-[#1e2130]
+                font-mono text-[13px] leading-relaxed
+                focus:border-[#3b4a6b] transition-colors"
         />
-        <p v-if="error" class="parse-error">{{ error }}</p>
+        <p v-if="error" class="mt-2 text-xs text-red-400 font-mono">{{ error }}</p>
       </section>
 
-      <section class="viewer-side">
-        <p v-if="!rawInput" class="placeholder-hint">
+      <section class="flex flex-col flex-1 p-4 overflow-auto">
+        <div v-if="parsed" class="flex justify-end mb-2.5 shrink-0">
+          <button
+            @click="copyJson"
+            :class="[
+              'px-3 py-1 text-xs rounded border transition-colors',
+              copied
+                ? 'text-green-300 border-green-300/25'
+                : 'text-slate-400 border-[#2e3a50] bg-[#1e2130] hover:text-slate-200 hover:border-[#3b4a6b]'
+            ]"
+          >
+            {{ copied ? 'Copied' : 'Copy' }}
+          </button>
+        </div>
+
+        <p v-if="!rawInput" class="m-auto text-sm text-slate-600">
           Your formatted JSON will appear here.
         </p>
-        <p v-else-if="error" class="placeholder-hint error">
+        <p v-else-if="error" class="m-auto text-sm text-red-400">
           Fix the error to see the tree.
         </p>
-        <div v-else class="tree">
+        <div v-else class="py-1">
           <JsonNode :data="parsed" />
         </div>
       </section>
+
     </main>
   </div>
 </template>
-
-<style scoped>
-.layout {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-.top-bar {
-  padding: 14px 24px;
-  border-bottom: 1px solid #1e2130;
-  flex-shrink: 0;
-}
-
-.top-bar h1 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #94a3b8;
-  letter-spacing: 0.5px;
-}
-
-.content {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-.input-side,
-.viewer-side {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-  padding: 16px;
-}
-
-.input-side {
-  border-right: 1px solid #1e2130;
-}
-
-textarea {
-  flex: 1;
-  background: #141720;
-  color: #cbd5e1;
-  border: 1px solid #1e2130;
-  border-radius: 6px;
-  padding: 14px;
-  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-  font-size: 13px;
-  line-height: 1.6;
-  resize: none;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-textarea:focus {
-  border-color: #3b4a6b;
-}
-
-.parse-error {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #f87171;
-  font-family: monospace;
-}
-
-.placeholder-hint {
-  color: #4a5568;
-  font-size: 14px;
-  margin: auto;
-}
-
-.placeholder-hint.error {
-  color: #f87171;
-}
-
-.tree {
-  padding: 4px 0;
-}
-</style>
