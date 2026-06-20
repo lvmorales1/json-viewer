@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import JsonNode from './components/JsonNode.vue'
 
 const rawInput = ref('')
 const parsed = ref(null)
@@ -42,7 +43,9 @@ function tryParse() {
         <p v-else-if="error" class="placeholder-hint error">
           Fix the error to see the tree.
         </p>
-        <pre v-else>{{ JSON.stringify(parsed, null, 2) }}</pre>
+        <div v-else class="tree">
+          <JsonNode :data="parsed" />
+        </div>
       </section>
     </main>
   </div>
@@ -123,12 +126,7 @@ textarea:focus {
   color: #f87171;
 }
 
-pre {
-  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-  font-size: 13px;
-  line-height: 1.6;
-  color: #94a3b8;
-  white-space: pre-wrap;
-  word-break: break-all;
+.tree {
+  padding: 4px 0;
 }
 </style>
