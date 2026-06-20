@@ -21,11 +21,19 @@ const type = computed(() => {
 
 const isExpandable = computed(() => type.value === 'object' || type.value === 'array')
 
+const PAGE = 100
+
 const entries = computed(() => {
   if (type.value === 'array') return props.data.map((v, i) => [i, v])
   if (type.value === 'object') return Object.entries(props.data)
   return []
 })
+
+const displayLimit = ref(PAGE)
+const visibleEntries = computed(() => entries.value.slice(0, displayLimit.value))
+const hiddenCount = computed(() => Math.max(0, entries.value.length - displayLimit.value))
+
+watch(() => props.data, () => { displayLimit.value = PAGE })
 
 const preview = computed(() => {
   if (type.value === 'array') return `[ ${props.data.length} items ]`
@@ -106,9 +114,15 @@ function highlight(text, term) {
       <span v-else class="text-slate-500">{{ type === 'array' ? '[' : '{' }}</span>
 
       <div v-if="isOpen" class="pl-5 border-l border-[#1e2130] ml-1.5">
-        <div v-for="([k, v], i) in entries" :key="k" class="flex items-baseline">
+        <div v-for="([k, v], i) in visibleEntries" :key="k" class="flex items-baseline">
           <JsonNode :data="v" :node-key="k" :depth="depth + 1" />
           <span v-if="i < entries.length - 1" class="text-slate-600">,</span>
+        </div>
+        <div v-if="hiddenCount > 0">
+          <button
+            @click="displayLimit += PAGE"
+            class="text-xs text-slate-500 hover:text-slate-300 bg-transparent border-none cursor-pointer py-0.5"
+          >… {{ hiddenCount }} more</button>
         </div>
       </div>
 

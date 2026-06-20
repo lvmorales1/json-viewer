@@ -7,25 +7,35 @@ const parsed = ref(null)
 const error = ref('')
 const copied = ref(false)
 
+let parseTimer = null
 function tryParse() {
-  error.value = ''
-  parsed.value = null
-  if (!rawInput.value.trim()) return
-
-  try {
-    parsed.value = JSON.parse(rawInput.value)
-  } catch (e) {
-    error.value = e.message
-  }
+  clearTimeout(parseTimer)
+  parseTimer = setTimeout(() => {
+    error.value = ''
+    parsed.value = null
+    if (!rawInput.value.trim()) return
+    try {
+      parsed.value = JSON.parse(rawInput.value)
+    } catch (e) {
+      error.value = e.message
+    }
+  }, 120)
 }
 
 const expandTick = ref(0)
 const collapseTick = ref(0)
 const searchTerm = ref('')
+const searchInput = ref('')
 const viewerEl = ref(null)
 provide('expandTick', expandTick)
 provide('collapseTick', collapseTick)
 provide('searchTerm', searchTerm)
+
+let searchTimer = null
+watch(searchInput, val => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => { searchTerm.value = val }, 150)
+})
 
 let marks = []
 const matchIndex = ref(0)
@@ -98,19 +108,19 @@ async function copyJson() {
         <div class="flex flex-col gap-2 px-4 pt-4 pb-2 border-b border-[#1e2130] shrink-0">
           <div v-if="parsed" class="flex items-center gap-2">
             <input
-              v-model="searchTerm"
+              v-model="searchInput"
               placeholder="Search keys and values..."
               @keydown.enter="nextMatch"
               class="flex-1 bg-[#141720] text-slate-300 border border-[#1e2130]
                     rounded px-3 py-1 text-xs outline-none font-mono
                     focus:border-[#3b4a6b] transition-colors placeholder:text-slate-600"
             />
-            <template v-if="searchTerm && matchCount > 0">
+            <template v-if="searchInput && matchCount > 0">
               <span class="text-xs text-slate-500 shrink-0">{{ matchIndex + 1 }} / {{ matchCount }}</span>
               <button @click="prevMatch" class="px-2 py-1 text-xs rounded border border-[#2e3a50] bg-[#1e2130] text-slate-400 hover:text-slate-200 hover:border-[#3b4a6b] transition-colors">↑</button>
               <button @click="nextMatch" class="px-2 py-1 text-xs rounded border border-[#2e3a50] bg-[#1e2130] text-slate-400 hover:text-slate-200 hover:border-[#3b4a6b] transition-colors">↓</button>
             </template>
-            <span v-else-if="searchTerm && matchCount === 0" class="text-xs text-slate-600 shrink-0">no results</span>
+            <span v-else-if="searchInput && matchCount === 0" class="text-xs text-slate-600 shrink-0">no results</span>
           </div>
 
           <div v-if="parsed" class="flex justify-end gap-2">
